@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Formatter & Object Viewer</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">{ }</span>
+          <div class="logo-text">
+            <h1>JSON Formatter</h1>
+            <span class="subtitle">Oddiy & Interaktiv Object Ko'rinishi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Namuna tanlash -->
+        <div class="action-group">
+          <label for="sampleSelect">Namuna:</label>
+          <select id="sampleSelect" class="select-input">
+            <option value="">Namuna tanlang...</option>
+            <option value="user">Foydalanuvchi ma'lumoti</option>
+            <option value="ecommerce">Mahsulotlar katalogi</option>
+            <option value="nested">Murakkab ichma-ich object</option>
+          </select>
+        </div>
+
+        <!-- Indentatsiya -->
+        <div class="action-group">
+          <label for="indentSelect">Bo'shliq:</label>
+          <select id="indentSelect" class="select-input">
+            <option value="2">2 ta bo'shliq</option>
+            <option value="4">4 ta bo'shliq</option>
+            <option value="tab">Tab</option>
+          </select>
+        </div>
+
+        <!-- Saralash -->
+        <button id="sortBtn" class="btn btn-secondary" title="Kalitlarni alifbo bo'yicha saralash">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M6 12h12m-9 6h6"/></svg>
+          Saralash
+        </button>
+
+        <!-- Mavzu o'zgartirish (Dark / Light) -->
+        <button id="themeToggleBtn" class="btn btn-icon" title="Mavzuni almashtirish">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Asosiy ishchi maydon -->
+    <main class="main-layout">
+      <!-- Chap panel: Kiritish -->
+      <section class="panel input-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot"></span>
+            <h2>Xom JSON Kiritish</h2>
+          </div>
+          <div class="panel-tools">
+            <label for="fileInput" class="btn-text" title="JSON fayl yuklash">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Fayl yuklash
+            </label>
+            <input type="file" id="fileInput" accept=".json,application/json,text/plain" style="display:none;">
+            <button id="pasteBtn" class="btn-text" title="Vaqtinchalik xotiradan qo'yish">Qo'yish</button>
+            <button id="clearBtn" class="btn-text btn-danger-text" title="Tozalash">Tozalash</button>
+          </div>
+        </div>
+
+        <div class="editor-container">
+          <div class="line-numbers" id="inputLineNumbers">1</div>
+          <textarea id="jsonInput" placeholder="Bu yerga JSON matnini kiriting yoki fayl tashlang...
+Masalan: { &quot;ism&quot;: &quot;Ali&quot;, &quot;yosh&quot;: 25, &quot;faol&quot;: true }" spellcheck="false"></textarea>
+        </div>
+
+        <!-- Xatolik paneli -->
+        <div id="errorBox" class="error-box hidden">
+          <div class="error-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <strong>JSON Xatosi</strong>
+          </div>
+          <div id="errorMessage" class="error-content"></div>
+        </div>
+
+        <div class="panel-footer">
+          <div class="input-stats">
+            <span id="charCount">0 belgi</span>
+            <span class="sep">•</span>
+            <span id="lineCount">1 qator</span>
+          </div>
+          <div class="input-actions">
+            <button id="minifyBtn" class="btn btn-secondary" title="Barcha bo'shliqlarni olib tashlash (siqish)">Siqish (Minify)</button>
+            <button id="formatBtn" class="btn btn-primary" title="JSONni chiroyli formatlash (Ctrl+Enter)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              Formatlash
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- O'ng panel: Formatlangan Natija & Object Ko'rinishi -->
+      <section class="panel output-panel">
+        <div class="panel-header">
+          <!-- Ko'rinish turlari tablari -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="tree">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              Object Ko'rinishi (Daraxt)
+            </button>
+            <button class="tab-btn" data-tab="code">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              Formatlangan Matn
+            </button>
+            <button class="tab-btn" data-tab="table">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+              Jadval Ko'rinishi
+            </button>
+          </div>
+
+          <div class="panel-tools">
+            <button id="copyBtn" class="btn btn-secondary" title="Natijani nusxalash">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span id="copyText">Nusxalash</span>
+            </button>
+            <button id="downloadBtn" class="btn btn-secondary" title=".json fayl sifatida yuklab olish">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Yuklash
+            </button>
+          </div>
+        </div>
+
+        <!-- Daraxt paneli uchun boshqaruv (Search & Expand/Collapse) -->
+        <div id="treeControls" class="tree-controls-bar">
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="treeSearchInput" placeholder="Kalit yoki qiymat bo'yicha qidiruv...">
+            <button id="clearSearchBtn" class="clear-search-btn hidden">&times;</button>
+          </div>
+          <div class="tree-quick-actions">
+            <button id="expandAllBtn" class="btn-chip" title="Barchasini ochish">Barchasini ochish</button>
+            <button id="collapseAllBtn" class="btn-chip" title="Barchasini yopish">Barchasini yopish</button>
+          </div>
+        </div>
+
+        <!-- Natija ko'rsatish maydoni -->
+        <div class="output-content">
+          <!-- 1. Daraxt / Object ko'rinishi -->
+          <div id="treeViewTab" class="tab-pane active">
+            <div id="treeContainer" class="tree-container">
+              <div class="empty-state">
+                <div class="empty-icon">{ }</div>
+                <p>Formatlash uchun chap panelga JSON kiriting va <strong>Formatlash</strong> tugmasini bosing</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Formatlangan matn ko'rinishi -->
+          <div id="codeViewTab" class="tab-pane">
+            <div class="code-view-wrapper">
+              <div class="line-numbers" id="outputLineNumbers">1</div>
+              <pre id="codeOutput" class="code-output"><code>// Formatlangan JSON shu yerda ko'rinadi</code></pre>
+            </div>
+          </div>
+
+          <!-- 3. Jadval ko'rinishi -->
+          <div id="tableViewTab" class="tab-pane">
+            <div id="tableContainer" class="table-container">
+              <div class="empty-state">
+                <p>Jadval ko'rinishi ro'yxat (Array) shaklidagi obyektlar uchun mavjud.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Natija xulosa satri (Footer) -->
+        <div class="panel-footer output-footer">
+          <div class="status-badge" id="validityBadge">
+            <span class="badge-dot"></span>
+            <span id="validityText">Kutilmoqda</span>
+          </div>
+          <div class="meta-stats" id="metaStats">
+            <span id="statSize">Hajmi: 0 B</span>
+            <span class="sep">•</span>
+            <span id="statKeys">Kalitlar: 0</span>
+            <span class="sep">•</span>
+            <span id="statDepth">Chuqurlik: 0</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Nusxalandi!</div>
+
+  <script src="app.js"></script>
+</body>
+</html>

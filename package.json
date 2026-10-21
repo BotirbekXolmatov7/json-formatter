@@ -1,0 +1,15 @@
+{
+  "name": "json-formatter-object-viewer",
+  "version": "1.0.0",
+  "description": "JSON ma'lumotlarni formatlash va oddiy interaktiv object ko'rinishida ko'rsatadigan dastur",
+  "main": "server.js",
+  "bin": {
+    "json-fmt": "./cli.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "cli": "node cli.js"
+  },
+  "keywords": ["json", "formatter", "object-viewer", "tree-view", "nodejs"],
+  "license": "MIT"
+}

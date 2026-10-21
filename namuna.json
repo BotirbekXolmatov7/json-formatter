@@ -1,0 +1,20 @@
+{
+  "loyiha": "JSON Formatter & Object Viewer",
+  "versiya": "1.0.0",
+  "muallif": {
+    "ism": "Ali",
+    "kasb": "Dasturchi",
+    "tajriba_yil": 5,
+    "aloqa": {
+      "shahar": "Toshkent",
+      "email": "ali@example.uz"
+    }
+  },
+  "texnologiyalar": ["JavaScript", "HTML5", "CSS3", "Node.js"],
+  "sozlamalar": {
+    "mavzu": "dark",
+    "boshliqlar": 2,
+    "avto_format": true
+  },
+  "faol": true
+}
