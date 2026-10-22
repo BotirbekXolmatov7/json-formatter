@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/usr/bin/env bash
 cd "$(dirname "$0")"
-node server.js
+./scripts/run.sh

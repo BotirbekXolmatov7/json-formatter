@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Formatter & Object Viewer</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">{ }</span>
+          <div class="logo-text">
+            <h1 id="appTitle">JSON Formatter</h1>
+            <span class="subtitle" id="appSubtitle">Simple & Interactive Object Viewer</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Language Switcher: EN / UZ / RU -->
+        <div class="action-group">
+          <label for="langSelect" id="langLabel">Language:</label>
+          <select id="langSelect" class="select-input" aria-label="Language selection">
+            <option value="en" selected>🇬🇧 English</option>
+            <option value="uz">🇺🇿 O'zbek</option>
+            <option value="ru">🇷🇺 Русский</option>
+          </select>
+        </div>
+
+        <!-- Sample selection -->
+        <div class="action-group">
+          <label for="sampleSelect" id="sampleLabel">Sample:</label>
+          <select id="sampleSelect" class="select-input">
+            <option value="" id="optSampleDefault">Choose sample...</option>
+            <option value="user" id="optSampleUser">User Profile</option>
+            <option value="ecommerce" id="optSampleEcommerce">Product Catalog</option>
+            <option value="nested" id="optSampleNested">Nested Complex Object</option>
+          </select>
+        </div>
+
+        <!-- Indentation -->
+        <div class="action-group">
+          <label for="indentSelect" id="indentLabel">Indent:</label>
+          <select id="indentSelect" class="select-input">
+            <option value="2" id="optIndent2">2 spaces</option>
+            <option value="4" id="optIndent4">4 spaces</option>
+            <option value="tab" id="optIndentTab">Tab</option>
+          </select>
+        </div>
+
+        <!-- Sort -->
+        <button id="sortBtn" class="btn btn-secondary" title="Sort keys alphabetically (A-Z)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M6 12h12m-9 6h6"/></svg>
+          <span id="sortBtnText">Sort</span>
+        </button>
+
+        <!-- Theme Toggle (Dark / Light) -->
+        <button id="themeToggleBtn" class="btn btn-icon" title="Toggle theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="main-layout">
+      <!-- Left Panel: Input -->
+      <section class="panel input-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot"></span>
+            <h2 id="inputPanelTitle">Raw JSON Input</h2>
+          </div>
+          <div class="panel-tools">
+            <label for="fileInput" id="fileUploadLabel" class="btn-text" title="Upload JSON file">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="fileUploadText">Upload file</span>
+            </label>
+            <input type="file" id="fileInput" accept=".json,application/json,text/plain" style="display:none;">
+            <button id="pasteBtn" class="btn-text" title="Paste from clipboard">Paste</button>
+            <button id="clearBtn" class="btn-text btn-danger-text" title="Clear">Clear</button>
+          </div>
+        </div>
+
+        <div class="editor-container">
+          <div class="line-numbers" id="inputLineNumbers">1</div>
+          <textarea id="jsonInput" placeholder="Enter JSON text here or drop a file...
+For example: { &quot;name&quot;: &quot;Alex&quot;, &quot;age&quot;: 25, &quot;active&quot;: true }" spellcheck="false"></textarea>
+        </div>
+
+        <!-- Error Panel -->
+        <div id="errorBox" class="error-box hidden">
+          <div class="error-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <strong id="errorHeaderTitle">JSON Error</strong>
+          </div>
+          <div id="errorMessage" class="error-content"></div>
+        </div>
+
+        <div class="panel-footer">
+          <div class="input-stats">
+            <span id="charCount">0 chars</span>
+            <span class="sep">•</span>
+            <span id="lineCount">1 line</span>
+          </div>
+          <div class="input-actions">
+            <button id="minifyBtn" class="btn btn-secondary" title="Remove all whitespace (minify)">Minify</button>
+            <button id="formatBtn" class="btn btn-primary" title="Format JSON beautifully (Ctrl+Enter)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="formatBtnText">Format</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Output & Tree View -->
+      <section class="panel output-panel">
+        <div class="panel-header">
+          <!-- View Tabs -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="tree" id="tabBtnTree">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              <span id="tabTextTree">Object View (Tree)</span>
+            </button>
+            <button class="tab-btn" data-tab="code" id="tabBtnCode">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <span id="tabTextCode">Formatted Text</span>
+            </button>
+            <button class="tab-btn" data-tab="table" id="tabBtnTable">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+              <span id="tabTextTable">Table View</span>
+            </button>
+          </div>
+
+          <div class="panel-tools">
+            <button id="copyBtn" class="btn btn-secondary" title="Copy result">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span id="copyText">Copy</span>
+            </button>
+            <button id="downloadBtn" class="btn btn-secondary" title="Download as .json file">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span id="downloadText">Download</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tree Controls Bar -->
+        <div id="treeControls" class="tree-controls-bar">
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="treeSearchInput" placeholder="Search by key or value...">
+            <button id="clearSearchBtn" class="clear-search-btn hidden">&times;</button>
+          </div>
+          <div class="tree-quick-actions">
+            <button id="expandAllBtn" class="btn-chip" title="Expand all">Expand all</button>
+            <button id="collapseAllBtn" class="btn-chip" title="Collapse all">Collapse all</button>
+          </div>
+        </div>
+
+        <!-- Output Content -->
+        <div class="output-content">
+          <!-- 1. Tree View -->
+          <div id="treeViewTab" class="tab-pane active">
+            <div id="treeContainer" class="tree-container">
+              <div class="empty-state">
+                <div class="empty-icon">{ }</div>
+                <p id="emptyTreeMsg">Enter JSON into the left panel and click <strong>Format</strong></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Formatted Code View -->
+          <div id="codeViewTab" class="tab-pane">
+            <div class="code-view-wrapper">
+              <div class="line-numbers" id="outputLineNumbers">1</div>
+              <pre id="codeOutput" class="code-output"><code>// Formatted JSON will appear here</code></pre>
+            </div>
+          </div>
+
+          <!-- 3. Table View -->
+          <div id="tableViewTab" class="tab-pane">
+            <div id="tableContainer" class="table-container">
+              <div class="empty-state">
+                <p id="emptyTableMsg">Table view only works for an <strong>Array of Objects</strong>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Footer -->
+        <div class="panel-footer output-footer">
+          <div class="status-badge" id="validityBadge">
+            <span class="badge-dot"></span>
+            <span id="validityText">Waiting</span>
+          </div>
+          <div class="meta-stats" id="metaStats">
+            <span id="statSize">Size: 0 B</span>
+            <span class="sep">•</span>
+            <span id="statKeys">Keys: 0</span>
+            <span class="sep">•</span>
+            <span id="statDepth">Depth: 0</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Copied!</div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/core/i18n.js"></script>
+  <script src="js/core/samples.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/error-parser.js"></script>
+  <script src="js/views/tree-view.js"></script>
+  <script src="js/views/code-view.js"></script>
+  <script src="js/views/table-view.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
